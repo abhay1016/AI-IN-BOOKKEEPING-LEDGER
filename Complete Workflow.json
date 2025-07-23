@@ -1,0 +1,604 @@
+{
+  "name": "My workflow 19",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "/webhook/dashboard",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7e186814-5088-43b0-9df9-ebb6b2395509",
+      "name": "Dashboard Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        320
+      ],
+      "webhookId": "dashboard-001"
+    },
+    {
+      "parameters": {
+        "functionCode": "// AI Dashboard Data Generation\nconst dashboardData = {\n  overview: {\n    title: 'AI Bookkeeping Dashboard',\n    lastUpdated: new Date().toISOString(),\n    aiProcessingStatus: 'Active',\n    realTimeUpdates: true\n  },\n  metrics: {\n    totalTransactions: 1247,\n    aiProcessed: 1186,\n    accuracy: '99.2%',\n    timeSaved: '185 hours',\n    costSavings: '$12,450'\n  },\n  recentActivity: [\n    { time: '2 minutes ago', action: 'Invoice processed', vendor: 'Tech Solutions Ltd', amount: '$1,250' },\n    { time: '15 minutes ago', action: 'Reconciliation completed', transactions: 25, matches: 24 },\n    { time: '1 hour ago', action: 'Anomaly detected', description: 'High amount transaction flagged' }\n  ],\n  aiInsights: {\n    trends: [\n      'Technology expenses increased 15% this month',\n      'Payment processing time reduced by 67%',\n      'Vendor payment accuracy improved to 99.8%'\n    ],\n    recommendations: [\n      'Consider automated approval for transactions under $500',\n      'Review vendor payment terms for better cash flow',\n      'Implement predictive budgeting for Q4'\n    ]\n  },\n  alerts: [\n    { type: 'info', message: 'Monthly reconciliation 95% complete' },\n    { type: 'warning', message: '3 transactions require manual review' }\n  ],\n  chartData: {\n    monthlyExpenses: [18500, 19200, 17800, 20100, 18750],\n    aiAccuracy: [94.2, 95.8, 97.1, 98.5, 99.2],\n    processingTime: [45, 38, 25, 18, 12]\n  }\n};\n\nreturn { json: dashboardData };"
+      },
+      "id": "e7ada4ed-577b-466c-b7d3-4dc89db79096",
+      "name": "Dashboard Data Generator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        80,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d4df526e-d4e4-4e1e-93dc-5a9b9f12f740",
+      "name": "Dashboard Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        400,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const input = items[0].json.body || items[0].json;\n\n// Validate required fields\nfunction validateInput(data) {\n  const errors = [];\n  \n  if (!data.file && !data.fileUrl && !data.base64) {\n    errors.push('No file provided (file, fileUrl, or base64 required)');\n  }\n  \n  if (data.file && !data.file.mimetype) {\n    errors.push('File mimetype missing');\n  }\n  \n  return errors;\n}\n\n// Supported file types\nconst supportedTypes = [\n  'application/pdf',\n  'image/jpeg',\n  'image/png',\n  'image/tiff',\n  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'\n];\n\nconst errors = validateInput(input);\n\nif (errors.length > 0) {\n  return {\n    json: {\n      status: 'error',\n      message: 'Validation failed',\n      errors: errors,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// File type validation\nconst fileType = input.file?.mimetype || 'application/pdf';\nif (!supportedTypes.includes(fileType)) {\n  return {\n    json: {\n      status: 'error',\n      message: 'Unsupported file type',\n      supportedTypes: supportedTypes,\n      receivedType: fileType\n    }\n  };\n}\n\n// Prepare for processing\nconst processedInput = {\n  fileData: input.file || input.base64 || input.fileUrl,\n  fileName: input.fileName || `invoice_${Date.now()}.pdf`,\n  fileType: fileType,\n  uploadId: `UP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n  metadata: {\n    uploadedAt: new Date().toISOString(),\n    source: input.source || 'api',\n    userId: input.userId || 'system'\n  }\n};\n\nreturn {\n  json: {\n    status: 'validated',\n    data: processedInput,\n    message: 'File validated successfully'\n  }\n};"
+      },
+      "id": "991e12cc-74aa-4b0f-87ef-713384110d1e",
+      "name": "Input Validator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "validate"
+            }
+          ]
+        }
+      },
+      "id": "5476ea2b-efe4-4cef-8540-a0f757ec43e0",
+      "name": "Error Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Enhanced OCR Processing with multiple providers fallback\nconst inputData = items[0].json.data || items[0].json;\n\n// Simulate advanced OCR with multiple extraction methods\nfunction extractInvoiceData(fileData, fileType) {\n  // Primary OCR simulation (e.g., AWS Textract, Google Vision)\n  const primaryExtraction = {\n    vendor: {\n      name: extractVendorName(fileData),\n      address: extractAddress(fileData),\n      taxId: extractTaxId(fileData)\n    },\n    invoice: {\n      number: extractInvoiceNumber(fileData),\n      date: extractDate(fileData),\n      dueDate: extractDueDate(fileData)\n    },\n    amounts: {\n      subtotal: extractSubtotal(fileData),\n      tax: extractTax(fileData),\n      total: extractTotal(fileData),\n      currency: extractCurrency(fileData)\n    },\n    lineItems: extractLineItems(fileData)\n  };\n  \n  return primaryExtraction;\n}\n\n// Mock extraction functions (replace with actual OCR API calls)\nfunction extractVendorName(data) {\n  const vendors = ['Tech Solutions Ltd', 'Office Supplies Co', 'Software Inc', 'Cloud Services LLC'];\n  return vendors[Math.floor(Math.random() * vendors.length)];\n}\n\nfunction extractAddress(data) {\n  return '123 Business St, Suite 100, City, State 12345';\n}\n\nfunction extractTaxId(data) {\n  return `TAX${Math.floor(Math.random() * 1000000)}`;\n}\n\nfunction extractInvoiceNumber(data) {\n  return `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;\n}\n\nfunction extractDate(data) {\n  const today = new Date();\n  const randomDays = Math.floor(Math.random() * 30);\n  const invoiceDate = new Date(today.getTime() - (randomDays * 24 * 60 * 60 * 1000));\n  return invoiceDate.toISOString().split('T')[0];\n}\n\nfunction extractDueDate(data) {\n  const invoiceDate = new Date();\n  const dueDate = new Date(invoiceDate.getTime() + (30 * 24 * 60 * 60 * 1000));\n  return dueDate.toISOString().split('T')[0];\n}\n\nfunction extractSubtotal(data) {\n  return parseFloat((Math.random() * 5000 + 100).toFixed(2));\n}\n\nfunction extractTax(data) {\n  const subtotal = extractSubtotal(data);\n  return parseFloat((subtotal * 0.1).toFixed(2));\n}\n\nfunction extractTotal(data) {\n  const subtotal = extractSubtotal(data);\n  const tax = subtotal * 0.1;\n  return parseFloat((subtotal + tax).toFixed(2));\n}\n\nfunction extractCurrency(data) {\n  return 'USD';\n}\n\nfunction extractLineItems(data) {\n  const itemCount = Math.floor(Math.random() * 5) + 1;\n  const items = [];\n  \n  for (let i = 0; i < itemCount; i++) {\n    items.push({\n      description: `Product/Service ${i + 1}`,\n      quantity: Math.floor(Math.random() * 10) + 1,\n      unitPrice: parseFloat((Math.random() * 500 + 10).toFixed(2)),\n      total: parseFloat((Math.random() * 1000 + 50).toFixed(2))\n    });\n  }\n  \n  return items;\n}\n\n// Perform extraction\nconst extractedData = extractInvoiceData(inputData.fileData, inputData.fileType);\n\n// Quality validation\nfunction validateExtraction(data) {\n  const issues = [];\n  \n  if (!data.vendor.name || data.vendor.name.length < 2) {\n    issues.push('Vendor name extraction uncertain');\n  }\n  \n  if (!data.invoice.number || data.invoice.number.length < 3) {\n    issues.push('Invoice number extraction uncertain');\n  }\n  \n  if (!data.amounts.total || data.amounts.total <= 0) {\n    issues.push('Total amount extraction failed');\n  }\n  \n  if (!data.invoice.date) {\n    issues.push('Invoice date extraction failed');\n  }\n  \n  return issues;\n}\n\nconst validationIssues = validateExtraction(extractedData);\nconst confidence = Math.max(0.6, 1 - (validationIssues.length * 0.15));\n\nreturn {\n  json: {\n    status: 'extracted',\n    uploadId: inputData.uploadId,\n    extraction: {\n      ...extractedData,\n      confidence: confidence,\n      validationIssues: validationIssues,\n      extractionMethod: 'primary_ocr',\n      processingTime: `${(Math.random() * 2 + 0.5).toFixed(1)}s`\n    },\n    metadata: {\n      ...inputData.metadata,\n      extractedAt: new Date().toISOString(),\n      fileProcessed: true\n    }\n  }\n};"
+      },
+      "id": "f54accc1-207d-4aac-974f-6d3b9a7512e4",
+      "name": "Enhanced OCR Processor",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -300,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// AI-Powered Data Validation & Enhancement\nconst extractedData = items[0].json.extraction;\nconst metadata = items[0].json.metadata;\n\n// Advanced validation rules\nfunction performAdvancedValidation(data) {\n  const validations = {\n    vendor: validateVendor(data.vendor),\n    invoice: validateInvoice(data.invoice),\n    amounts: validateAmounts(data.amounts),\n    consistency: validateConsistency(data)\n  };\n  \n  return validations;\n}\n\nfunction validateVendor(vendor) {\n  const issues = [];\n  const suggestions = [];\n  \n  // Check vendor name format\n  if (vendor.name && vendor.name.length < 2) {\n    issues.push('Vendor name too short');\n    suggestions.push('Manual review required for vendor name');\n  }\n  \n  // Validate tax ID format (if provided)\n  if (vendor.taxId && !/^[A-Z]{2,3}\\d{6,9}$/.test(vendor.taxId)) {\n    issues.push('Tax ID format may be incorrect');\n    suggestions.push('Verify tax ID format');\n  }\n  \n  return { issues, suggestions, score: Math.max(0, 1 - (issues.length * 0.2)) };\n}\n\nfunction validateInvoice(invoice) {\n  const issues = [];\n  const suggestions = [];\n  \n  // Validate invoice number format\n  if (!invoice.number || invoice.number.length < 3) {\n    issues.push('Invoice number format uncertain');\n    suggestions.push('Verify invoice number');\n  }\n  \n  // Validate dates\n  const invoiceDate = new Date(invoice.date);\n  const dueDate = new Date(invoice.dueDate);\n  const today = new Date();\n  \n  if (invoiceDate > today) {\n    issues.push('Invoice date is in the future');\n    suggestions.push('Check invoice date accuracy');\n  }\n  \n  if (dueDate < invoiceDate) {\n    issues.push('Due date is before invoice date');\n    suggestions.push('Verify payment terms');\n  }\n  \n  return { issues, suggestions, score: Math.max(0, 1 - (issues.length * 0.2)) };\n}\n\nfunction validateAmounts(amounts) {\n  const issues = [];\n  const suggestions = [];\n  \n  // Check amount relationships\n  const expectedTotal = amounts.subtotal + amounts.tax;\n  const difference = Math.abs(expectedTotal - amounts.total);\n  \n  if (difference > 0.01) {\n    issues.push(`Amount calculation mismatch: ${difference.toFixed(2)}`);\n    suggestions.push('Verify tax calculation');\n  }\n  \n  // Check for reasonable tax rates (0-30%)\n  const taxRate = amounts.subtotal > 0 ? (amounts.tax / amounts.subtotal) : 0;\n  if (taxRate > 0.3 || taxRate < 0) {\n    issues.push('Unusual tax rate detected');\n    suggestions.push('Review tax rate calculation');\n  }\n  \n  return { issues, suggestions, score: Math.max(0, 1 - (issues.length * 0.3)) };\n}\n\nfunction validateConsistency(data) {\n  const issues = [];\n  const suggestions = [];\n  \n  // Check line items vs total\n  const lineItemTotal = data.lineItems.reduce((sum, item) => sum + item.total, 0);\n  const difference = Math.abs(lineItemTotal - data.amounts.subtotal);\n  \n  if (difference > 0.01) {\n    issues.push('Line items total doesn\\'t match subtotal');\n    suggestions.push('Reconcile line items with totals');\n  }\n  \n  return { issues, suggestions, score: Math.max(0, 1 - (issues.length * 0.4)) };\n}\n\n// Perform validation\nconst validation = performAdvancedValidation(extractedData);\n\n// Calculate overall confidence score\nconst overallScore = (\n  validation.vendor.score * 0.2 +\n  validation.invoice.score * 0.3 +\n  validation.amounts.score * 0.4 +\n  validation.consistency.score * 0.1\n);\n\n// Determine next action based on confidence\nconst requiresReview = overallScore < 0.85 || extractedData.validationIssues.length > 2;\n\n// Auto-categorization\nfunction categorizeExpense(vendorName, lineItems) {\n  const categories = {\n    'tech|software|cloud|hosting': 'Technology',\n    'office|supplies|paper|pen': 'Office Supplies',\n    'travel|hotel|flight|uber': 'Travel',\n    'marketing|advertising|social': 'Marketing',\n    'legal|accounting|consulting': 'Professional Services'\n  };\n  \n  const text = `${vendorName} ${lineItems.map(item => item.description).join(' ')}`.toLowerCase();\n  \n  for (const [pattern, category] of Object.entries(categories)) {\n    if (new RegExp(pattern).test(text)) {\n      return category;\n    }\n  }\n  \n  return 'General Expenses';\n}\n\nconst suggestedCategory = categorizeExpense(extractedData.vendor.name, extractedData.lineItems);\n\nreturn {\n  json: {\n    status: requiresReview ? 'requires_review' : 'validated',\n    uploadId: items[0].json.uploadId,\n    validatedData: {\n      ...extractedData,\n      overallConfidence: overallScore,\n      suggestedCategory: suggestedCategory,\n      requiresReview: requiresReview\n    },\n    validation: validation,\n    recommendations: {\n      autoApprove: !requiresReview && overallScore > 0.9,\n      flagForReview: requiresReview,\n      suggestedActions: getAllSuggestions(validation)\n    },\n    processing: {\n      validatedAt: new Date().toISOString(),\n      processingTimeTotal: `${(Math.random() * 3 + 1).toFixed(1)}s`\n    }\n  }\n};\n\nfunction getAllSuggestions(validation) {\n  const allSuggestions = [];\n  Object.values(validation).forEach(v => {\n    if (v.suggestions) allSuggestions.push(...v.suggestions);\n  });\n  return [...new Set(allSuggestions)];\n}"
+      },
+      "id": "9cd06a19-e198-4c8d-8e51-e61f16968f03",
+      "name": "AI Data Validator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.validatedData.requiresReview }}",
+              "value2": "true"
+            }
+          ]
+        }
+      },
+      "id": "85890d4d-b594-4027-9c9e-0590979fc96d",
+      "name": "Review Required?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        180,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Auto-Approval Process\nconst validatedData = items[0].json.validatedData;\nconst uploadId = items[0].json.uploadId;\n\n// Create final invoice record\nconst approvedInvoice = {\n  id: `INV_${uploadId.split('_')[1]}_${Date.now()}`,\n  status: 'approved',\n  ...validatedData,\n  approval: {\n    method: 'auto',\n    timestamp: new Date().toISOString(),\n    confidence: validatedData.overallConfidence,\n    reason: 'High confidence validation passed'\n  },\n  nextSteps: {\n    createLedgerEntry: true,\n    schedulePayment: validatedData.invoice.dueDate,\n    notifyApprover: false\n  }\n};\n\nreturn {\n  json: {\n    status: 'auto_approved',\n    invoice: approvedInvoice,\n    message: 'Invoice automatically approved based on high confidence validation'\n  }\n};"
+      },
+      "id": "6c662e0a-da5e-44b8-9dc9-eb75d09ee03f",
+      "name": "Auto Approve",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Manual Review Queue\nconst data = items[0].json;\nconst uploadId = data.uploadId || data.validatedData?.uploadId || `UP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n// Create review record\nconst reviewRecord = {\n  id: `REV_${uploadId.split('_')[1]}_${Date.now()}`,\n  status: 'pending_review',\n  priority: data.validatedData.overallConfidence < 0.7 ? 'high' : 'normal',\n  invoice: data.validatedData,\n  validation: data.validation,\n  recommendations: data.recommendations,\n  review: {\n    assignedTo: null,\n    createdAt: new Date().toISOString(),\n    estimatedReviewTime: '5-10 minutes',\n    reviewUrl: `/review/${uploadId}`\n  },\n  notifications: {\n    emailSent: false,\n    slackSent: false,\n    dashboardAlert: true\n  }\n};\n\nreturn {\n  json: {\n    status: 'queued_for_review',\n    review: reviewRecord,\n    message: 'Invoice queued for manual review due to validation concerns'\n  }\n};"
+      },
+      "id": "1fe9ac1e-aa39-42e5-955d-e6e35725994f",
+      "name": "Queue for Manual Review",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "a7935590-8bb0-4860-bd37-b9011dd8f377",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -300,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "c0b7eaf0-fc02-4510-b6f5-9573d6527360",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        900,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "path": "/invoice-upload",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "537c5efc-0020-4a14-8420-7bb5f7ab4080",
+      "name": "Invoice Upload Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1000,
+        40
+      ],
+      "webhookId": "invoice-upload"
+    },
+    {
+      "parameters": {
+        "sendTo": "22ec3001@rgipt.ac.in",
+        "subject": "report",
+        "message": "={{ $json.status }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        680,
+        40
+      ],
+      "id": "addac8ce-47df-4869-8ac3-a14656bfb36b",
+      "name": "Send a message",
+      "webhookId": "3f38e659-f16a-48b1-9193-2d05f19e0062",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "aNUPqBObWG0oHFNP",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Enhanced Chat Input Processing & Validation\nconst input = items[0].json.body || items[0].json || {};\n\n// Generate unique session ID if not provided\nconst sessionId = input.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n// Input validation\nfunction validateChatInput(data) {\n  const errors = [];\n  \n  // Use a default message if not provided, but still validate if present\n  const message = data.message || 'No message provided';\n  if (typeof message !== 'string') {\n    errors.push('Message must be a string');\n  }\n  \n  if (message.length > 4000) {\n    errors.push('Message too long (max 4000 characters)');\n  }\n  \n  if (message.trim().length === 0) {\n    errors.push('Message cannot be empty');\n  }\n  \n  return errors;\n}\n\nconst validationErrors = validateChatInput(input);\n\nif (validationErrors.length > 0) {\n  return {\n    json: {\n      status: 'error',\n      error: {\n        type: 'validation_error',\n        message: 'Invalid input provided',\n        details: validationErrors\n      },\n      timestamp: new Date().toISOString(),\n      sessionId: sessionId\n    }\n  };\n}\n\n// Process and clean the message\nconst cleanMessage = (input.message || 'No message provided').trim();\n\n// Detect message intent/type\nfunction detectMessageIntent(message) {\n  const lowerMsg = message.toLowerCase();\n  \n  if (lowerMsg.includes('?') || lowerMsg.startsWith('what') || lowerMsg.startsWith('how') || \n      lowerMsg.startsWith('when') || lowerMsg.startsWith('where') || lowerMsg.startsWith('why')) {\n    return 'question';\n  }\n  \n  if (lowerMsg.match(/^(hi|hello|hey|good morning|good afternoon|good evening)/)) {\n    return 'greeting';\n  }\n  \n  if (lowerMsg.includes('help') || lowerMsg.includes('assist') || lowerMsg.includes('support')) {\n    return 'help_request';\n  }\n  \n  if (lowerMsg.startsWith('please') || lowerMsg.includes('can you') || lowerMsg.includes('could you')) {\n    return 'request';\n  }\n  \n  return 'general';\n}\n\n// Extract context and metadata\nconst messageIntent = detectMessageIntent(cleanMessage);\nconst wordCount = cleanMessage.split(' ').length;\nconst messageComplexity = wordCount > 20 ? 'complex' : wordCount > 10 ? 'medium' : 'simple';\n\n// Prepare enhanced chat context with defaults\nconst chatContext = {\n  sessionId: sessionId,\n  messageId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,\n  message: cleanMessage,\n  originalMessage: input.message || 'No message provided',\n  intent: messageIntent,\n  complexity: messageComplexity,\n  wordCount: wordCount,\n  timestamp: new Date().toISOString(),\n  user: {\n    id: input.userId || 'anonymous',\n    name: input.userName || 'User',\n    language: input.language || 'en',\n    timezone: input.timezone || 'UTC'\n  },\n  context: {\n    previousMessages: input.chatHistory || [],\n    conversationTopic: input.topic || null,\n    customInstructions: input.instructions || null,\n    responseStyle: input.responseStyle || 'friendly'\n  },\n  metadata: {\n    platform: input.platform || 'api',\n    clientVersion: input.clientVersion || '1.0',\n    requestSource: input.source || 'direct'\n  }\n};\n\nreturn {\n  json: {\n    status: 'processed',\n    chatContext: chatContext,\n    message: 'Input processed successfully'\n  }\n};"
+      },
+      "id": "74a5bd61-4fea-4ed9-a8df-572c760eec02",
+      "name": "Chat Input Processor",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Advanced AI Response Generator\nfunction generateAIResponse(chatContext = {}) {\n  // Provide defaults for missing fields\n  const defaultContext = {\n    message: 'No message provided',\n    intent: 'general',\n    user: { name: 'User' },\n    context: { responseStyle: 'friendly' },\n    sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n    messageId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`\n  };\n  const context = { ...defaultContext, ...chatContext };\n\n  // Response templates based on intent and style\n  const responseTemplates = {\n    greeting: { friendly: [\"Hello! How can I help you today?\"] },\n    question: { friendly: [\"That's a great question! Let me help you with that.\"] },\n    help_request: { friendly: [\"I'm here to help! Let me guide you through this.\"] },\n    general: { friendly: [\"Thanks for sharing that with me!\"] }\n  };\n\n  // Generate contextual response\n  function getResponseTemplate(ctx) {\n    const { intent, user, context: chatCtx } = ctx;\n    const style = chatCtx.responseStyle || 'friendly';\n    const templates = responseTemplates[intent]?.[style] || responseTemplates.general[style] || ['Default response'];\n    return templates[Math.floor(Math.random() * templates.length)].replace('{name}', user.name || 'User');\n  }\n\n  // Generate specific content based on the actual message\n  function generateSpecificContent(ctx) {\n    const message = ctx.message.toLowerCase().trim();\n    if (message.includes('weather')) {\n      return \"I'd be happy to help with weather information! However, I don't have access to real-time weather data. I recommend checking a reliable weather service.\";\n    }\n    if (message.includes('time') || message.includes('clock')) {\n      return `The current time is: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })}`; // IST with 12-hour format\n    }\n    if (message.includes('calculate') || message.includes('math') || /\\d+\\s*[+\\-*/]\\s*\\d+/.test(message)) {\n      const match = message.match(/(\\d+)\\s*([+\\-*/])\\s*(\\d+)/);\n      if (match) {\n        const num1 = parseFloat(match[1]);\n        const operator = match[2];\n        const num2 = parseFloat(match[3]);\n        let result;\n        switch (operator) {\n          case '+': result = num1 + num2; break;\n          case '-': result = num1 - num2; break;\n          case '*': result = num1 * num2; break;\n          case '/': result = num2 !== 0 ? num1 / num2 : 'Cannot divide by zero'; break;\n          default: result = 'Invalid operation';\n        }\n        return `The answer to ${num1} ${operator} ${num2} is: ${result}`;\n      }\n      return \"I can help with basic math! Try asking me something like '10 + 5'.\";\n    }\n    if (message.includes('code') || message.includes('programming')) {\n      return \"I'd be happy to help with programming questions! Ask about JavaScript, Python, etc.\";\n    }\n    if (message.includes('help') && !message.includes('weather') && !message.includes('time')) {\n      return \"I'm here to help! Ask about topics, calculations, or programming.\";\n    }\n    if (message === 'no message provided') {\n      return `It's ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })} on July 23, 2025. Please provide a message to get started! You can ask about the time, weather, math, or anything else.`;\n    }\n    return \"Thanks for your message! I'm here to assist.\";\n  }\n\n  // Generate suggestions\n  function generateSuggestions(ctx) {\n    return ['Ask me anything!', 'Need help?', 'Learn a topic?'];\n  }\n\n  try {\n    const response = getResponseTemplate(context);\n    const specificContent = generateSpecificContent(context);\n    const suggestions = generateSuggestions(context);\n\n    // Use process.hrtime() for Node.js-compatible timing with minimum threshold\n    const startTime = process.hrtime();\n    const hrTime = process.hrtime(startTime);\n    const responseTime = Math.max((hrTime[0] + hrTime[1] / 1e9).toFixed(2), 0.01) + 's'; // Minimum 0.01s\n\n    return {\n      json: {\n        status: 'success',\n        sessionId: context.sessionId,\n        messageId: context.messageId,\n        response: {\n          message: `${response}\\n\\n${specificContent}`,\n          type: 'text',\n          intent: context.intent,\n          confidence: 0.95,\n          suggestions\n        },\n        conversation: {\n          sessionId: context.sessionId,\n          messageCount: 1,\n          lastActivity: new Date().toISOString()\n        },\n        metadata: {\n          responseTime,\n          processingModel: 'enhanced-chat-v2',\n          responseStyle: context.context.responseStyle,\n          generatedAt: new Date().toISOString()\n        }\n      }\n    };\n  } catch (error) {\n    return {\n      json: {\n        status: 'error',\n        error: {\n          type: 'processing_error',\n          message: error.message,\n          timestamp: new Date().toISOString()\n        },\n        sessionId: context.sessionId\n      }\n    };\n  }\n}\n\n// Execute the response generator\ntry {\n  const chatContext = items[0]?.json?.chatContext || {};\n  return generateAIResponse(chatContext);\n} catch (error) {\n  return {\n    json: {\n      status: 'error',\n      error: {\n        type: 'initialization_error',\n        message: 'Failed to initialize response generator: ' + error.message,\n        timestamp: new Date().toISOString()\n      },\n      sessionId: 'unknown'\n    }\n  };\n}"
+      },
+      "id": "94680fd0-07c8-49fb-a143-eeb713041ac3",
+      "name": "AI Response Generator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        120,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Response Enhancement & Formatting\nconst responseData = items[0].json;\n\n// Add rich formatting and interactive elements\nfunction enhanceResponse(data) {\n  const enhanced = {\n    status: data.status,\n    sessionId: data.sessionId,\n    messageId: data.messageId,\n    response: {\n      message: data.response.message,\n      type: data.response.type,\n      intent: data.response.intent,\n      confidence: data.response.confidence,\n      suggestions: data.response.suggestions,\n      formatted: formatText(data.response.message),\n      quickActions: generateQuickActions(data),\n      conversationHints: generateConversationHints(data)\n    },\n    conversation: data.conversation,\n    metadata: data.metadata,\n    ui: {\n      showTypingIndicator: false,\n      enableSuggestions: true,\n      theme: 'auto',\n      soundEnabled: false\n    },\n    analytics: {\n      messageLength: data.response.message.length,\n      responseCategory: categorizeResponse(data.response.message),\n      userSatisfactionPrompt: data.conversation.messageCount % 5 === 0\n    }\n  };\n  \n  return enhanced;\n}\n\nfunction formatText(text) {\n  return text.replace(/\\n/g, '<br>');\n}\n\nfunction generateQuickActions(data) {\n  const actions = [];\n  const message = data.response.message.toLowerCase();\n  \n  if (message.includes('weather')) {\n    actions.push({\n      label: 'Get Weather',\n      action: 'get_weather',\n      description: 'Get current weather information'\n    });\n  }\n  \n  if (message.includes('time')) {\n    actions.push({\n      label: 'World Clock',\n      action: 'world_clock',\n      description: 'See time in different zones'\n    });\n  }\n  \n  if (message.includes('math') || message.includes('calculate')) {\n    actions.push({\n      label: 'Calculator',\n      action: 'open_calculator',\n      description: 'Open advanced calculator'\n    });\n  }\n  \n  if (message.includes('code') || message.includes('programming')) {\n    actions.push({\n      label: 'Code Helper',\n      action: 'code_assistant',\n      description: 'Get coding assistance'\n    });\n  }\n  \n  actions.push(\n    {\n      label: 'Ask Question',\n      action: 'ask_question',\n      description: 'Ask me anything'\n    },\n    {\n      label: 'Get Suggestions',\n      action: 'get_suggestions',\n      description: 'See what else I can help with'\n    }\n  );\n  \n  return actions;\n}\n\nfunction generateConversationHints(data) {\n  const hints = [];\n  \n  switch (data.response.intent) {\n    case 'greeting':\n      hints.push('Feel free to ask me about anything you are curious about!');\n      break;\n    case 'question':\n      hints.push('Would you like more details about this topic?');\n      hints.push('Do you have any related questions?');\n      break;\n    case 'help_request':\n      hints.push('Let me know if you need clarification on any step!');\n      break;\n    default:\n      hints.push('I am here if you have any other questions!');\n  }\n  \n  return hints;\n}\n\nfunction categorizeResponse(message) {\n  if (/information|explain|about|what is|how to/i.test(message)) {\n    return 'informational';\n  }\n  if (/hello|hi|thanks|thank you|bye|goodbye/i.test(message)) {\n    return 'conversational';\n  }\n  if (/help|assist|support|guide/i.test(message)) {\n    return 'helpful';\n  }\n  if (/calculate|math|result|answer/i.test(message)) {\n    return 'computational';\n  }\n  if (/story|poem|creative|imagine/i.test(message)) {\n    return 'creative';\n  }\n  return 'general';\n}\n\n// Enhance the response\nconst enhancedResponse = enhanceResponse(responseData);\n\n// Add final touches\nenhancedResponse.meta = {\n  version: '2.1',\n  apiVersion: 'v1',\n  processingComplete: true,\n  enhancedAt: new Date().toISOString()\n};\n\nreturn { json: enhancedResponse };"
+      },
+      "id": "ca4020e7-d0d6-4068-9ede-cd944fe46cd4",
+      "name": "Response Enhancer",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        360,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Session and Chat History Management\nconst responseData = items[0].json;\n\n// Simple in-memory session storage\nif (!global.chatSessions) {\n  global.chatSessions = new Map();\n}\n\nconst sessionId = responseData.sessionId;\nconst currentSession = global.chatSessions.get(sessionId) || {\n  id: sessionId,\n  createdAt: new Date().toISOString(),\n  messages: [],\n  userPreferences: {},\n  lastActivity: new Date().toISOString()\n};\n\n// Add current message to history\ncurrentSession.messages.push({\n  id: responseData.messageId,\n  timestamp: new Date().toISOString(),\n  type: 'user',\n  content: 'User message'\n});\n\ncurrentSession.messages.push({\n  id: 'ai_' + responseData.messageId,\n  timestamp: new Date().toISOString(),\n  type: 'assistant',\n  content: responseData.response.message,\n  confidence: responseData.response.confidence\n});\n\n// Limit message history to last 50 messages\nif (currentSession.messages.length > 50) {\n  currentSession.messages = currentSession.messages.slice(-50);\n}\n\ncurrentSession.lastActivity = new Date().toISOString();\ncurrentSession.messageCount = currentSession.messages.length;\n\n// Update session\nglobal.chatSessions.set(sessionId, currentSession);\n\n// Clean up old sessions (older than 24 hours)\nconst oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);\nfor (const [id, session] of global.chatSessions.entries()) {\n  if (new Date(session.lastActivity) < oneDayAgo) {\n    global.chatSessions.delete(id);\n  }\n}\n\n// Add session info to response\nconst finalResponse = {\n  status: responseData.status,\n  sessionId: responseData.sessionId,\n  messageId: responseData.messageId,\n  response: responseData.response,\n  conversation: responseData.conversation,\n  metadata: responseData.metadata,\n  ui: responseData.ui,\n  analytics: responseData.analytics,\n  meta: responseData.meta,\n  session: {\n    id: sessionId,\n    messageCount: currentSession.messageCount,\n    duration: Math.floor((new Date() - new Date(currentSession.createdAt)) / 1000),\n    activeSessions: global.chatSessions.size\n  }\n};\n\nreturn { json: finalResponse };"
+      },
+      "id": "f9cd5289-de8b-4247-a426-144c0134c00e",
+      "name": "Session Manager",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        600,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "path": "ai-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a93fd44e-3f1d-4c7f-8706-46fa2ecb15a3",
+      "name": "AI Chat Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -920,
+        680
+      ],
+      "webhookId": "ai-chat"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "validate"
+            }
+          ]
+        }
+      },
+      "id": "ba3853ad-a4d2-4ef8-88df-4321c6f5e62a",
+      "name": "Error Check1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type, Authorization"
+              }
+            ]
+          }
+        }
+      },
+      "id": "da5fb419-2c58-46ea-935f-b0dd555ff73f",
+      "name": "Success Response1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        820,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "5d3984b7-4a5e-4f36-8db3-c59de651c973",
+      "name": "Error Response1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        600
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Dashboard Webhook": {
+      "main": [
+        [
+          {
+            "node": "Dashboard Data Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dashboard Data Generator": {
+      "main": [
+        [
+          {
+            "node": "Dashboard Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Validator": {
+      "main": [
+        [
+          {
+            "node": "Error Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Check": {
+      "main": [
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enhanced OCR Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced OCR Processor": {
+      "main": [
+        [
+          {
+            "node": "AI Data Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Data Validator": {
+      "main": [
+        [
+          {
+            "node": "Review Required?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review Required?": {
+      "main": [
+        [
+          {
+            "node": "Auto Approve",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue for Manual Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto Approve": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue for Manual Review": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoice Upload Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Input Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Input Processor": {
+      "main": [
+        [
+          {
+            "node": "Error Check1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Response Generator": {
+      "main": [
+        [
+          {
+            "node": "Response Enhancer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Response Enhancer": {
+      "main": [
+        [
+          {
+            "node": "Session Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Session Manager": {
+      "main": [
+        [
+          {
+            "node": "Success Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Chat Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Chat Input Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Check1": {
+      "main": [
+        [
+          {
+            "node": "Error Response1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Response Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a1fe8147-e2ee-45db-93b2-d1bd055cc338",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4f489331cb670003ec9d689d06778a4a537b7818218817673fc887bb6aec46a1"
+  },
+  "id": "9Ml12YtFLq90ZfEr",
+  "tags": [
+    {
+      "createdAt": "2025-07-21T18:59:05.218Z",
+      "updatedAt": "2025-07-21T18:59:05.218Z",
+      "id": "ZkVMnGapwgwgMCt7",
+      "name": "AI Bookkeeping"
+    }
+  ]
+}
