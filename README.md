@@ -1,6 +1,6 @@
 🤖 AI-Powered Bookkeeping & Ledger Management System
 
-🌟 Overview
+🌟 Overview:
 This project implements a complete AI bookkeeping system using n8n workflows that transforms traditional manual bookkeeping into an intelligent, automated process. The system demonstrates practical implementation of AI concepts in financial management, achieving up to 90% time savings and 95% error reduction.
 
 🔄 Automated Data Processing
