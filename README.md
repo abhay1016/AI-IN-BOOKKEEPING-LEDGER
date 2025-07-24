@@ -77,6 +77,7 @@ Node Structure
 🚀 Getting Started
 
 Prerequisites
+
 n8n (Self-hosted or cloud)
 Gmail account for notifications (optional)
 Basic understanding of n8n workflow concepts
