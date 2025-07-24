@@ -57,6 +57,7 @@ Automated matching and reconciliation processing
 
 
 Node Structure
+
 📁 Workflow Components
 ├── 🔗 Webhook Endpoints (Invoice Upload, Dashboard, AI Chat)
 ├── 🔍 Input Validation & Processing
@@ -67,7 +68,6 @@ Node Structure
 └── 📧 Notification System
 
 🚀 Getting Started
-
 Prerequisites
 n8n (Self-hosted or cloud)
 Gmail account for notifications (optional)
