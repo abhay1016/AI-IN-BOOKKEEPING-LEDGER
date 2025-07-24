@@ -40,7 +40,9 @@ Quick Actions: Instant access to common bookkeeping tasks
 Help System: Guided assistance for users
 
 🏗️ System Architecture
+
 Core Workflows
+
 1.Invoice Processing Pipeline
 Input Validation → OCR Processing → AI Validation → Compliance Check → Approval/Review
 
@@ -65,32 +67,38 @@ Node Structure
 └── 📧 Notification System
 
 🚀 Getting Started
+
 Prerequisites
 n8n (Self-hosted or cloud)
 Gmail account for notifications (optional)
 Basic understanding of n8n workflow concepts
 
 Installation
+
 Clone the Repository
 bashgit clone https://github.com/abhay1016/AI-IN-BOOKKEEPING-LEDGER.git
 cd ai-bookkeeping-system
 
 Import Workflow
+
 Open your n8n instance
 Go to Workflows → Import from File
 Select Complete_Workflow.json
 
 
 Configure Credentials
+
 Set up Gmail credentials for notifications (if using email features)
 Configure webhook URLs according to your n8n instance
 
 
 Activate Workflow
+
 Enable the workflow in n8n
 Test webhook endpoints
 
 Quick Start
+
 Upload Invoice: Send POST request to /invoice-upload endpoint
 View Dashboard: Access /webhook/dashboard for real-time analytics
 Chat Interface: Use /ai-chat for conversational bookkeeping queries
