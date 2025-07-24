@@ -59,15 +59,23 @@ Automated matching and reconciliation processing
 Node Structure
 
 📁 Workflow Components
+
 ├── 🔗 Webhook Endpoints (Invoice Upload, Dashboard, AI Chat)
+
 ├── 🔍 Input Validation & Processing
+
 ├── 🤖 AI Processing Nodes (OCR, Validation, Compliance)
+
 ├── 📈 Analytics & Reporting
+
 ├── 💬 Chat System (4-stage processing)
+
 ├── 🔄 Reconciliation Engine
+
 └── 📧 Notification System
 
 🚀 Getting Started
+
 Prerequisites
 n8n (Self-hosted or cloud)
 Gmail account for notifications (optional)
